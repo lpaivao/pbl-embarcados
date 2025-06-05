@@ -1,4 +1,4 @@
-import { Medida } from "@/generated/prisma";
+import { Medida } from "@/model/medida";
 import { axiosRequest } from "./BaseAPI";
 
 export const GetAllMedidasReq = async () => {

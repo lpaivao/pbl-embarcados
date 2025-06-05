@@ -1,5 +1,5 @@
-import { Imagem } from "@/generated/prisma";
 import prisma from "@/lib/prisma";
+import { Imagem } from "@/model/imagem";
 import { NextResponse } from "next/server";
 
 export async function GET(

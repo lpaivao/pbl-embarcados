@@ -1,5 +1,5 @@
-import { Medida } from "@/generated/prisma";
 import prisma from "@/lib/prisma";
+import { Medida } from "@/model/medida";
 import { NextResponse } from "next/server";
 
 export async function GET() {
