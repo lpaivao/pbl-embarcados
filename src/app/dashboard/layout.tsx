@@ -17,6 +17,7 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
           mode="horizontal"
           defaultSelectedKeys={['2']}
           style={{ flex: 1, minWidth: 0 }}
+          items={undefined}
         />
       </Header>
       <Content style={{ padding: '0 48px' }}>
