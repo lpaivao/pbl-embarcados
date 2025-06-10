@@ -1,6 +1,9 @@
 'use client';
 
 import { useMqtt } from '@/hooks/useMqtt';
+import { Medida } from '@/model/medida';
+import { CreateMedidaReq } from '@/requests/APIMedida';
+import { useMutation } from '@tanstack/react-query';
 import mqtt from 'mqtt';
 import { createContext, ReactNode, useContext, useState } from 'react';
 
@@ -31,6 +34,12 @@ interface MqttProviderProps {
 
 export const MqttProvider = ({ children, brokerUrl, options }: MqttProviderProps) => {
     const [messages, setMessages] = useState<MqttMessage[]>([]);
+    const mutationCreateMedidas = useMutation({
+        mutationFn: CreateMedidaReq,
+        onSuccess: (data) => {
+            console.log('Medida registrada com sucesso:', data);
+        }
+    })
 
     const handleMessage = (topic: string, message: string) => {
         const newMessage: MqttMessage = {
@@ -39,6 +48,26 @@ export const MqttProvider = ({ children, brokerUrl, options }: MqttProviderProps
             timestamp: new Date(),
         };
         setMessages(prev => [...prev, newMessage]);
+
+        // Se for o tópico de medidas, serializa e grava no banco
+        if (topic.endsWith('/medidas')) {
+            try {
+                const medidaData: Omit<Medida, 'id'> = JSON.parse(message);
+                // Estrutura esperada da mensagem (ajuste conforme necessário)
+                const medidaToSave: Omit<Medida, 'id'> = {
+                    temperatura: medidaData.temperatura,
+                    umidade: medidaData.umidade,
+                    luminosidade: medidaData.luminosidade,
+                    gas: medidaData.gas,
+                    chanceVida: medidaData.chanceVida,
+                    dataHora: new Date(),
+                };
+
+                mutationCreateMedidas.mutate(medidaToSave);
+            } catch (error) {
+                console.error('Erro ao processar mensagem de medida:', error);
+            }
+        }
     };
 
     const mqtt = useMqtt({

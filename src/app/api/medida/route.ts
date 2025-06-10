@@ -15,8 +15,9 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body: Medida = await request.json();
-    const medida = await medidasRepository.create(body);
-    return NextResponse.json(medida);
+    const medida = medidasRepository.create(body);
+    const savedMedida = await medidasRepository.save(medida);
+    return NextResponse.json(savedMedida, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error }, { status: 500 });
   }
