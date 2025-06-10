@@ -22,8 +22,9 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body: Imagem = await request.json();
-    const imagem = await imagensRepository.create(body);
-    return NextResponse.json(imagem);
+    const imagem = imagensRepository.create(body);
+    const savedImagem = await imagensRepository.save(imagem);
+    return NextResponse.json(savedImagem);
   } catch (error) {
     return NextResponse.json({ error }, { status: 500 });
   }
