@@ -53,7 +53,6 @@ export const MqttProvider = ({ children, brokerUrl, options }: MqttProviderProps
         if (topic.endsWith('/medidas')) {
             try {
                 const medidaData: Omit<Medida, 'id'> = JSON.parse(message);
-                // Estrutura esperada da mensagem (ajuste conforme necessário)
                 const medidaToSave: Omit<Medida, 'id'> = {
                     temperatura: medidaData.temperatura,
                     umidade: medidaData.umidade,
