@@ -11,6 +11,6 @@ export const GetMedidaByIdReq = async (id: string) => {
   return response.data;
 };
 export const CreateMedidaReq = async (medida: Omit<Medida, "id">) => {
-  const response = await axiosRequest.post("/medida", medida);
+  const response = await axiosRequest.post<Medida>("/medida", medida);
   return response.data;
 };
