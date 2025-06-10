@@ -1,9 +1,11 @@
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals";
+import "../globals";
 import "./globals.css";
+import { MqttProvider } from "./providers/mqtt";
 import { TanstackProvider } from "./providers/tanstack-provider";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +34,15 @@ export default function RootLayout({
       >
         <AntdRegistry>
           <TanstackProvider>
-            {children}
+            <MqttProvider
+              brokerUrl="ws://broker.emqx.io:8083/mqtt"
+              options={{
+                username: 'NAlisson',
+                password: 'Nathiele',
+              }}
+            >
+              {children}
+            </MqttProvider>
           </TanstackProvider>
         </AntdRegistry>
       </body>

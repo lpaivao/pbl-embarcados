@@ -3,21 +3,44 @@
 import useChart from "@/hooks/useChart";
 import { GetAllMedidasReq } from "@/requests/APIMedida";
 import { useQuery } from "@tanstack/react-query";
+import { Badge, Card, Typography } from "antd";
 import { CategoryScale, Chart as ChartJs, Legend, LinearScale, LineElement, PointElement, Title, Tooltip } from "chart.js";
+import { useEffect, useMemo } from "react";
 import { Line } from "react-chartjs-2";
+import { useMqttContext } from "../providers/mqtt";
 
 ChartJs.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
+const { Text } = Typography;
+
 function DashboardPage() {
+    const { isConnected, messages, subscribe, topicMedidas, topicImagens } = useMqttContext();
+
+    useEffect(() => {
+        if (isConnected) {
+            subscribe(topicMedidas);
+            subscribe(topicImagens);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isConnected]);
+    // Filtrar mensagens por tópico
+    const medidasMessages = useMemo(() =>
+        messages.filter(msg => msg.topic === topicMedidas),
+        [messages, topicMedidas]
+    );
+
+    const imagensMessages = useMemo(() =>
+        messages.filter(msg => msg.topic === topicImagens),
+        [messages, topicImagens]
+    );
+
     const queryGetAllMedidas = useQuery({
         queryKey: ['getAllMedidas'],
         queryFn: GetAllMedidasReq,
-        refetchInterval: 5 * 1000, // Atualiza a cada 30 segundos
+        refetchInterval: 5 * 1000,
     });
 
     const medidas = queryGetAllMedidas.data;
-
-    console.log(medidas);
 
     const temperaturas: number[] = medidas?.map(medida => medida.temperatura) || [];
     const umidades: number[] = medidas?.map(medida => medida.umidade) || [];
@@ -32,6 +55,47 @@ function DashboardPage() {
 
     return (
         <>
+            {isConnected ? (
+                <Badge status="success" text="Conectado ao Broker!" />
+            ) : (
+                <Badge status="error" text="Sem conexão com o Broker!" />
+            )}
+
+            {/* Seção para mostrar mensagens MQTT recebidas */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+                <Card title="Mensagens de Medidas" size="small">
+                    <div className="max-h-32 overflow-y-auto">
+                        {medidasMessages.slice(-5).map((msg, index) => (
+                            <div key={index} className="text-xs mb-1">
+                                <Text type="secondary">
+                                    {msg.timestamp.toLocaleTimeString()}:
+                                </Text>
+                                <Text> {msg.message}</Text>
+                            </div>
+                        ))}
+                        {medidasMessages.length === 0 && (
+                            <Text type="secondary">Nenhuma mensagem recebida</Text>
+                        )}
+                    </div>
+                </Card>
+
+                <Card title="Mensagens de Imagens" size="small">
+                    <div className="max-h-32 overflow-y-auto">
+                        {imagensMessages.slice(-5).map((msg, index) => (
+                            <div key={index} className="text-xs mb-1">
+                                <Text type="secondary">
+                                    {msg.timestamp.toLocaleTimeString()}:
+                                </Text>
+                                <Text> {msg.message}</Text>
+                            </div>
+                        ))}
+                        {imagensMessages.length === 0 && (
+                            <Text type="secondary">Nenhuma mensagem recebida</Text>
+                        )}
+                    </div>
+                </Card>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
                 <div className="w-full h-96">
                     <Line data={graficoTemperatura} options={optionsTemperatura} />
@@ -52,4 +116,4 @@ function DashboardPage() {
     )
 }
 
-export default DashboardPage
+export default DashboardPage;
