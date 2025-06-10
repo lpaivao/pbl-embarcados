@@ -1,7 +1,9 @@
 'use client';
 
 import { useMqtt } from '@/hooks/useMqtt';
+import { Imagem } from '@/model/imagem';
 import { Medida } from '@/model/medida';
+import { createImagemReq } from '@/requests/APIImagem';
 import { CreateMedidaReq } from '@/requests/APIMedida';
 import { useMutation } from '@tanstack/react-query';
 import mqtt from 'mqtt';
@@ -41,6 +43,13 @@ export const MqttProvider = ({ children, brokerUrl, options }: MqttProviderProps
         }
     })
 
+    const mutationCreateImagens = useMutation({
+        mutationFn: createImagemReq,
+        onSuccess: (data) => {
+            console.log('Imagem registrada com sucesso:', data);
+        }
+    });
+
     const handleMessage = (topic: string, message: string) => {
         const newMessage: MqttMessage = {
             topic,
@@ -65,6 +74,35 @@ export const MqttProvider = ({ children, brokerUrl, options }: MqttProviderProps
                 mutationCreateMedidas.mutate(medidaToSave);
             } catch (error) {
                 console.error('Erro ao processar mensagem de medida:', error);
+            }
+        }
+        else if (topic.endsWith('/imagens')) {
+            try {
+                const imagemData: Imagem = JSON.parse(message);
+
+                // Primeiro criar a medida
+                const medidaToSave: Omit<Medida, 'id'> = {
+                    temperatura: imagemData.medida.temperatura,
+                    umidade: imagemData.medida.umidade,
+                    luminosidade: imagemData.medida.luminosidade,
+                    gas: imagemData.medida.gas,
+                    chanceVida: imagemData.medida.chanceVida,
+                    dataHora: new Date(),
+                };
+
+                // Criar medida primeiro
+                mutationCreateMedidas.mutate(medidaToSave, {
+                    onSuccess: (medidaCriada) => {
+                        // Depois criar a imagem com o ID da medida criada
+                        const imagemToSave: Omit<Imagem, 'id'> = {
+                            url: imagemData.url,
+                            medida: medidaCriada
+                        };
+                        mutationCreateImagens.mutate(imagemToSave);
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao processar mensagem de imagem:', error);
             }
         }
     };
