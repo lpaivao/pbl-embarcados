@@ -1,16 +1,30 @@
-import prisma from "@/lib/prisma";
+import AppDataSource from "@/lib/typeorm/config";
+import { Imagem as TypeormImagem } from "@/lib/typeorm/entities/imagem";
 import { Imagem } from "@/model/imagem";
 import { NextResponse } from "next/server";
 
+const imagensRepository = AppDataSource.getRepository(TypeormImagem);
+
 export async function GET() {
-  const imagens: Imagem[] = await prisma.imagem.findMany();
-  return NextResponse.json(imagens);
+  try {
+    const imagens: Imagem[] = await imagensRepository.find({
+      relations: ["medida"],
+      order: {
+        medida: { dataHora: "DESC" },
+      },
+    });
+    return NextResponse.json(imagens);
+  } catch (error) {
+    return NextResponse.json({ error }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
-  const body: Imagem = await request.json();
-  const imagem = await prisma.imagem.create({
-    data: { ...body },
-  });
-  return NextResponse.json(imagem);
+  try {
+    const body: Imagem = await request.json();
+    const imagem = await imagensRepository.create(body);
+    return NextResponse.json(imagem);
+  } catch (error) {
+    return NextResponse.json({ error }, { status: 500 });
+  }
 }

@@ -1,0 +1,39 @@
+services:
+  nextjs:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USERNAME=pbl3-embarcados
+      - DB_PASSWORD=pbl3-embarcados
+      - DB_NAME=pbl3-embarcados
+      - NODE_ENV=development
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: pbl3-embarcados
+      POSTGRES_PASSWORD: pbl3-embarcados
+      POSTGRES_DB: pbl3-embarcados
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pbl3-embarcados"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

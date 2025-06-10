@@ -12,7 +12,7 @@ function DashboardPage() {
     const queryGetAllMedidas = useQuery({
         queryKey: ['getAllMedidas'],
         queryFn: GetAllMedidasReq,
-        refetchInterval: 30 * 1000, // Atualiza a cada 30 segundos
+        refetchInterval: 5 * 1000, // Atualiza a cada 30 segundos
     });
 
     const medidas = queryGetAllMedidas.data;
